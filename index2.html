@@ -1,0 +1,51 @@
+<div id="app-4">
+  <input v-model="message"><br>
+  <input v-model="number"><br>
+  <button v-on:click="addToList">Add to list</button>
+</div>
+
+<div id="app-5">
+  <ol>
+    <li v-for="todo in todos">
+      {{ todo.text }}
+    </li>
+  </ol>
+</div>
+
+<br>
+<br>
+
+
+<div id="inputform">
+  <select v-model="selectedinput">
+    <option disabled value="">Select input type</option>
+    <option v-for="inputtype in inputs">
+      {{ inputtype.text }}
+    </option>
+  </select>
+
+  <h3>INPUT: {{ selectedinput }}</h3>
+  <p>Required fields</p>
+    <div v-for="field in fields">
+      <div v-bind:style='"text-indent: " + field.margin + "em;"' v-if="field.type == 'boolean'">
+      {{ field.name }}: <input type="checkbox">
+      </div>
+      <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'number'">
+      {{ field.name }}: <input v-bind:value="field.initial" type="number">
+      </div>
+      <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'array'">
+      {{ field.name }}: <input v-bind:value="field.initial" type="number">
+      </div>
+      <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
+      {{ field.name }}:
+      </div>
+      <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else>
+      {{ field.name }}: <input v-bind:value="field.initial">
+      </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src='myvue.js'></script>
