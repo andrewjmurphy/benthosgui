@@ -26,25 +26,28 @@
 
   <h3>INPUT: {{ selectedinput }}</h3>
   <p>Required fields</p>
+  <form id=input>
     <div v-for="field in fields">
       <div v-bind:style='"text-indent: " + field.margin + "em;"' v-if="field.type == 'boolean'">
-      {{ field.name }}: <input type="checkbox">
+      {{ field.name }}: <input type="checkbox" v-bind:name="field.uniqid">
       </div>
       <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'number'">
-      {{ field.name }}: <input v-bind:value="field.initial" type="number">
+      {{ field.name }}: <input type="number" v-bind:name="field.uniqid" v-bind:value="field.initial">
       </div>
       <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'array'">
-      {{ field.name }}: <input v-bind:value="field.initial" type="number">
+      {{ field.name }}: <button v-on:click="addArrayEntry">Add</button>
       </div>
       <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
       {{ field.name }}:
       </div>
       <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else>
-      {{ field.name }}: <input v-bind:value="field.initial">
+      {{ field.name }}: <input type="text" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
       </div>
     </div>
-</div>
+    <button @click.prevent="generateConfig">Generate</button>
+  </form>
 
+</div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>

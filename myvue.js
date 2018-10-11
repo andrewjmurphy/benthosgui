@@ -1049,6 +1049,19 @@ var template = {
   "sys_exit_timeout_ms": 20000
 }
 
+var ttemplate = {
+  "input": {
+    "type": "stdin",
+    "amqp": {
+      "queue": "benthos-queue",
+      "queue_declare": {
+        "enabled": false,
+        "durable": true
+      }
+    }
+  }
+}
+
 var app4 = new Vue({
   el: '#app-4',
   data: {
@@ -1073,10 +1086,12 @@ var createSection = new Vue({
     generateFormSection: function(formfields, templateSection, margin, parent) {
       for (fieldname in templateSection) {
         subsection = templateSection[fieldname]
-        entry = {'name': fieldname, 'margin': margin}
+        uniqid = "input." + parent + fieldname
+        entry = {'name': fieldname, 'margin': margin, 'parent': parent, 'uniqid': uniqid}
         switch (typeof subsection) {
           case 'boolean':
             entry.type = 'boolean'
+            entry.initial = subsection
             formfields.push(entry)
             break;
           case 'number':
@@ -1086,13 +1101,39 @@ var createSection = new Vue({
             break;
           case 'object':
             subobjects = []
+            entry.initial = '_parent'
             if (Array.isArray(subsection)) {
               entry.type = 'array'
               formfields.push(entry)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              child = {"0": ""}
+              formfields = createSection.generateFormSection(formfields, child, margin + 2, fieldname + ".")
             } else {
               entry.type = 'object'
               formfields.push(entry)
-              formfields = createSection.generateFormSection(formfields, subsection, margin + 2, fieldname)
+              formfields = createSection.generateFormSection(formfields, subsection, margin + 2, fieldname + ".")
             }
             break;
           default:
@@ -1105,14 +1146,48 @@ var createSection = new Vue({
       }
       console.log(formfields)
       return formfields
+    },
+    generateConfig: function (outputData) {
+      result = {}
+      for (path in outputData) {
+        result = createSection.addPathToOutput(result, path, outputData[path])
+      }
+      return result
+    },
+    addPathToOutput: function(result, path, data) {
+      console.log(result)
+      //debugger
+      if (path.includes(".")) {
+        console.log("not a leaf")
+        seperator = path.indexOf('.')
+        parent = path.substring(0,seperator)
+        child = path.substring(seperator+1)
+        console.log("parent: " + parent + " child: " + child)
+        parentobj = {}
+        if (parent in result) {
+          parentobj = result[parent]
+        }
+        result[parent] = createSection.addPathToOutput(parentobj, child, data)
+        return result
+      } else {
+        if (data != '_parent') {
+          result[path] = data
+          console.log("adding " + path + ": " + data + " to " + result)
+        }
+        console.log(result)
+        return result
+      }
     }
   }
 })
 
+
 var inputform = new Vue({
   el: '#inputform',
   data: {
+    count: 1,
     selectedinput: "",
+    output: {},
     inputs: [
     ],
     fields: [
@@ -1127,18 +1202,19 @@ var inputform = new Vue({
   },
   watch: {
     selectedinput: function(){
-      this.fields = []
-      for (fieldname in template.input[this.selectedinput]) {
-        prefill = ""
-        if (typeof template.input[this.selectedinput][fieldname] == "string") {
-          prefill = template.input[this.selectedinput][fieldname]
-        }
-        //this.fields.push({ text: fieldname, initial: prefill })
-      }
       this.fields = createSection.generateFormSection([], template.input[this.selectedinput], 0, "")
+      for (field in this.fields) {
+        this.output[this.fields[field]['uniqid']] = this.fields[field]['initial']
+      }
     }
   },
   methods: {
+    generateConfig: function () {
+      console.log(createSection.generateConfig(this.output))
+    },
+    addArrayEntry: function () {
+      this.inputs.push()
+    }
   }
 })
 
@@ -1151,14 +1227,3 @@ var app5 = new Vue({
   methods: {
   }
 })
-
-function test() {
-        switch (typeof "thisisastring") {
-          case 'string':
-            console.log( "matched string" )
-          case 'boolean':
-            console.log( "matched bool" )
-          case 'object':
-            console.log( "matched object" )
-        }
-}
