@@ -1065,6 +1065,50 @@ var app4 = new Vue({
   }
 })
 
+var createSection = new Vue({
+  data: {
+    result: ""
+  },
+  methods: {
+    generateFormSection: function(formfields, templateSection, margin, parent) {
+      for (fieldname in templateSection) {
+        subsection = templateSection[fieldname]
+        entry = {'name': fieldname, 'margin': margin}
+        switch (typeof subsection) {
+          case 'boolean':
+            entry.type = 'boolean'
+            formfields.push(entry)
+            break;
+          case 'number':
+            entry.initial = subsection
+            entry.type = 'number'
+            formfields.push(entry)
+            break;
+          case 'object':
+            subobjects = []
+            if (Array.isArray(subsection)) {
+              entry.type = 'array'
+              formfields.push(entry)
+            } else {
+              entry.type = 'object'
+              formfields.push(entry)
+              formfields = createSection.generateFormSection(formfields, subsection, margin + 2, fieldname)
+            }
+            break;
+          default:
+            entry.initial = subsection
+            entry.type = 'string'
+            formfields.push(entry)
+            break;
+        }
+
+      }
+      console.log(formfields)
+      return formfields
+    }
+  }
+})
+
 var inputform = new Vue({
   el: '#inputform',
   data: {
@@ -1091,50 +1135,10 @@ var inputform = new Vue({
         }
         //this.fields.push({ text: fieldname, initial: prefill })
       }
-      this.fields = this.generateFormSection([], template.input[this.selectedinput], 0)
+      this.fields = createSection.generateFormSection([], template.input[this.selectedinput], 0, "")
     }
   },
   methods: {
-    generateFormSection: function(formfields, templateSection, margin) {
-      for (fieldname in templateSection) {
-        subsection = templateSection[fieldname]
-        console.log( fieldname + " = " + typeof subsection + " formfields " + formfields.length + " fields " + this.fields.length)
-        entry = {'name': fieldname, 'margin': margin}
-        switch (typeof subsection) {
-          case 'boolean':
-            entry.type = 'boolean'
-            formfields.push(entry)
-            break;
-          case 'number':
-            entry.initial = subsection
-            entry.type = 'number'
-            formfields.push(entry)
-            break;
-          case 'object':
-            subobjects = []
-            if (Array.isArray(subsection)) {
-              entry.type = 'array'
-              formfields.push(entry)
-            } else {
-              entry.type = 'object'
-              formfields.push(entry)
-              formfields = inputform.generateFormSection(formfields, subsection, margin + 2)
-            }
-            //for (sub in subobjects) {
-            //  formfields.push(sub)
-            //}
-            break;
-          default:
-            entry.initial = subsection
-            entry.type = 'string'
-            formfields.push(entry)
-            break;
-        }
-
-      }
-      console.log(formfields)
-      return formfields
-    }
   }
 })
 
