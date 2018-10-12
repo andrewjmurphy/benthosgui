@@ -1071,19 +1071,21 @@ var createSection = new Vue({
             formfields.push(entry)
             break;
           case 'object':
-            subobjects = []
-            if (Array.isArray(subsection)) {
-              entry.type = 'array'
-              entry.elements = []
-              for (key in subsection) {
-                entry.elements[key] = {"index": key, "initial": subsection[key]}
+            if (fieldname != "processors") {
+              subobjects = []
+              if (Array.isArray(subsection)) {
+                entry.type = 'array'
+                entry.elements = []
+                for (key in subsection) {
+                  entry.elements[key] = {"index": key, "initial": subsection[key]}
+                }
+                formfields.push(entry)
+              } else {
+                entry.type = 'object'
+                entry.initial = '_parent'
+                formfields.push(entry)
+                formfields = createSection.generateFormSection(formfields, subsection, margin + 2, uniqid + ".")
               }
-              formfields.push(entry)
-            } else {
-              entry.type = 'object'
-              entry.initial = '_parent'
-              formfields.push(entry)
-              formfields = createSection.generateFormSection(formfields, subsection, margin + 2, uniqid + ".")
             }
             break;
           default:
@@ -1136,23 +1138,41 @@ Vue.component('form-vue', {
     nested: {
       default: true,
       type: Boolean
+    },
+    showprocessors: {
+      default: false,
+      type: Boolean
     }
   },
   data: function () {
     return {
+      formname: "",
       count: 1,
       selectedinput: "",
       output: {},
       brokeroutput: {},
+      showbroker: false,
+
       configOutput: "",
       inputs: [
       ],
       fields: [
       ],
-      showbroker: false
+
+      selectedprocessor: "",
+      processoroutput: {},
+      processorOutputObject: {},
+      processorinputs: [
+
+      ],
+      processorfields: [
+
+      ]
+
     }
   },
   created: function() {
+    this.formname = this.name;
     if (this.name == "input") {
       this.showbroker = true
       this.brokeroutput = {
@@ -1175,6 +1195,14 @@ Vue.component('form-vue', {
       this.fields = createSection.generateFormSection([], template[this.name], 0, this.name + ".")
       this.createOutputObject()
     }
+    if (this.showprocessors) {
+      for (processorname in template.pipeline.processors[0]) {
+        if (processorname != "type") {
+          this.processorinputs.push({ text: processorname })
+        }
+      }
+      this.processorOutputObject[this.formname] = {"processors": []}
+    }
   },
   watch: {
     selectedinput: function(){
@@ -1182,6 +1210,11 @@ Vue.component('form-vue', {
       this.fields = createSection.generateFormSection([], template[this.name][this.selectedinput], 0, this.name + "." + this.selectedinput + ".")
       this.output[this.name + '.type'] = this.selectedinput
       this.createOutputObject()
+    },
+    selectedprocessor: function(){
+      this.processoroutput = {}
+      this.processorfields = createSection.generateFormSection([], template.pipeline.processors[0][this.selectedprocessor], 0, this.name + ".processors." + this.selectedprocessor + ".")
+      this.createProcessorOutputObject()
     }
   },
   methods: {
@@ -1200,6 +1233,21 @@ Vue.component('form-vue', {
         }
       }
     },
+    createProcessorOutputObject: function () {
+      for (field in this.processorfields) {
+        if (this.processorfields[field].type == 'array') {
+          inputArray = this.processorfields[field].elements
+          outputArray = []
+          for (key in inputArray) {
+            entry = inputArray[key]
+            outputArray[entry.index] = entry.initial
+          }
+          this.processoroutput[this.processorfields[field]['uniqid']] = outputArray
+        } else {
+          this.processoroutput[this.processorfields[field]['uniqid']] = this.processorfields[field]['initial']
+        }
+      }
+    },
     generateConfig: function () {
       generatedConfig = createSection.generateConfig(this.output)
       this.configOutput = JSON.stringify(generatedConfig, null, 2)
@@ -1211,12 +1259,26 @@ Vue.component('form-vue', {
       this.output
       this.generateConfig()
     },
-    addToBroker: function (parent) {
+    addToBroker: function () {
       this.brokeroutput.input.broker.inputs.push((generatedConfig = createSection.generateConfig(this.output).input))
-      console.log(this.brokeroutput)
       generatedConfig = createSection.generateConfig(this.brokeroutput)
       this.configOutput = JSON.stringify(generatedConfig, null, 2)
       this.$emit("updateoutput", {"name": this.name, "output": this.brokeroutput})
+    },
+    addProcessor: function () {
+      console.log(this.processorOutputObject)
+      this.processorOutputObject[this.name].processors.push((generatedConfig = createSection.generateConfig(this.processoroutput).pipeline.processors))
+      generatedProcessorConfig = createSection.generateConfig(this.processorOutputObject)
+      generatedMasterConfig = createSection.generateConfig(this.processorOutputObject)
+      generatedConfig = this.mergeObjects(generatedProcessorConfig, generatedMasterConfig)
+      this.configOutput = JSON.stringify(generatedConfig, null, 2)
+      this.$emit("updateoutput", {"name": this.name, "output": this.processorOutputObject})
+    },
+    mergeObjects: function (obj, src) {
+      for (var key in src) {
+        if (src.hasOwnProperty(key)) obj[key] = src[key];
+      }
+      return obj;
     }
   },
   template: `
@@ -1231,7 +1293,7 @@ Vue.component('form-vue', {
       </select>
 
       <form id=input>
-          <div v-for="field in fields">
+          <div id=mainform v-for="field in fields">
               <div v-bind:style='"text-indent: " + field.margin + "em;"' v-if="field.type == 'boolean'">
                   {{ field.name }}: <input type="checkbox" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
               </div>
@@ -1255,6 +1317,39 @@ Vue.component('form-vue', {
           </div>
           <button @click.prevent="generateConfig">Generate</button>
           <button @click.prevent="addToBroker" v-show="showbroker">Add to broker</button>
+      </form>
+
+      <select v-model="selectedprocessor" v-show="showprocessors">
+          <option disabled value="">Select processor type</option>
+          <option v-for="processortype in processorinputs">
+              {{ processortype.text }}
+          </option>
+      </select>
+
+      <form id=processorform  v-show="showprocessors">
+          <div id=mainform v-for="field in processorfields">
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-if="field.type == 'boolean'">
+                  {{ field.name }}: <input type="checkbox" v-bind:name="field.uniqid" v-model="processoroutput[field.uniqid]">
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'number'">
+                  {{ field.name }}: <input type="number" v-bind:name="field.uniqid" v-model="processoroutput[field.uniqid]">
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'array'">
+                  {{ field.name }}:
+                  <button @click.prevent="addArrayEntry(field)">Add</button>
+                  <div v-for="arrayEntry in field.elements"
+                       v-bind:style='"text-indent: " + (field.margin + 2) + "em;"'>
+                      <input type="text" v-bind:name="field.uniqid + '.' + arrayEntry.index" v-model="processoroutput[field.uniqid][arrayEntry.index]">
+                  </div>
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
+                  {{ field.name }}:
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else>
+                  {{ field.name }}: <input type="text" v-bind:name="field.uniqid" v-model="processoroutput[field.uniqid]">
+              </div>
+          </div>
+          <button @click.prevent="addProcessor">Add processor</button>
       </form>
 
       <pre>
