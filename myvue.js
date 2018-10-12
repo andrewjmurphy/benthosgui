@@ -1269,6 +1269,19 @@ var vueForms = new Vue({
   }
 })
 
+// register modal component
+Vue.component('modal', {
+    template: '#modal-template'
+})
+
+// start app
+new Vue({
+    el: '#generate-config',
+    data: {
+        showModal: false,
+        config: JSON.stringify(vueForms.getAllOutput(), null, 2)
+    }
+})
 
 var acc = document.getElementsByClassName("accordion");
 var i;
