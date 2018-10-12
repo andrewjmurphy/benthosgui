@@ -1073,10 +1073,6 @@ var createSection = new Vue({
           case 'object':
             subobjects = []
             if (Array.isArray(subsection)) {
-              if (fieldname == 'inputs') {
-                // this is a special case, treat it as such
-                console.log("inputs array detected")
-              }
               entry.type = 'array'
               entry.elements = []
               for (key in subsection) {
@@ -1099,6 +1095,9 @@ var createSection = new Vue({
 
       }
       return formfields
+    },
+    addInputArray: function (parent) {
+
     },
     generateConfig: function (outputData) {
       result = {}
@@ -1144,14 +1143,28 @@ Vue.component('form-vue', {
       count: 1,
       selectedinput: "",
       output: {},
+      brokeroutput: {},
       configOutput: "",
       inputs: [
       ],
       fields: [
-      ]
+      ],
+      showbroker: false
     }
   },
   created: function() {
+    if (this.name == "input") {
+      this.showbroker = true
+      this.brokeroutput = {
+        "input": {
+          "type": "broker",
+          "broker": {
+            "copies": 1,
+            "inputs": []
+          }
+        }
+      }
+    }
     if (this.nested) {
       for (inputname in template[this.name]) {
         if (inputname != "type") {
@@ -1197,6 +1210,13 @@ Vue.component('form-vue', {
       parent.elements.push(newElement)
       this.output
       this.generateConfig()
+    },
+    addToBroker: function (parent) {
+      this.brokeroutput.input.broker.inputs.push((generatedConfig = createSection.generateConfig(this.output).input))
+      console.log(this.brokeroutput)
+      generatedConfig = createSection.generateConfig(this.brokeroutput)
+      this.configOutput = JSON.stringify(generatedConfig, null, 2)
+      this.$emit("updateoutput", {"name": this.name, "output": this.brokeroutput})
     }
   },
   template: `
@@ -1234,6 +1254,7 @@ Vue.component('form-vue', {
               </div>
           </div>
           <button @click.prevent="generateConfig">Generate</button>
+          <button @click.prevent="addToBroker" v-show="showbroker">Add to broker</button>
       </form>
 
       <pre>
