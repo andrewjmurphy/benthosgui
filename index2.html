@@ -57,7 +57,7 @@
 
 <!-- app -->
 <div id="generate-config">
-    <button id="show-modal" @click="showModal = true">Generate config</button>
+    <button id="show-modal" @click="showConfig">Generate config</button>
     <!-- use the modal component, pass in the prop -->
     <modal v-if="showModal" @close="showModal = false">
         <!--

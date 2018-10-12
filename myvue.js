@@ -1280,6 +1280,12 @@ new Vue({
     data: {
         showModal: false,
         config: JSON.stringify(vueForms.getAllOutput(), null, 2)
+    },
+    methods: {
+      showConfig: function () {
+        this.config = JSON.stringify(vueForms.getAllOutput(), null, 2)
+        this.showModal = true
+      }
     }
 })
 
