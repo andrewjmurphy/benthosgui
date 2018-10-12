@@ -47,6 +47,14 @@ html {
     border-color: #212121;
 }
 
+.dropdown {
+    margin-bottom: 18px;
+}
+
+.add-button {
+    margin-top: 18px;
+}
+
 .more-less {
     float: right;
     color: #212121;

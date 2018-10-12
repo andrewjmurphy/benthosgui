@@ -1223,7 +1223,7 @@ Vue.component('form-vue', {
 <div id=formvue>
   <button class="accordion">{{ name.toUpperCase() }}<i class="more-less glyphicon glyphicon-plus"></i></button>
   <div id="thisform" class="panel">
-      <select v-model="selectedinput" v-show="nested">
+      <select v-model="selectedinput" v-show="nested" class="dropdown">
           <option disabled value="">Select input type</option>
           <option v-for="inputtype in inputs">
               {{ inputtype.text }}
@@ -1253,8 +1253,8 @@ Vue.component('form-vue', {
                   {{ field.name }}: <input type="text" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
               </div>
           </div>
-          <button @click.prevent="generateConfig">Generate</button>
-          <button @click.prevent="addToBroker" v-show="showbroker">Add to broker</button>
+          <button @click.prevent="generateConfig" class="add-button">Generate</button>
+          <button @click.prevent="addToBroker" v-show="showbroker" class="add-button">Add to broker</button>
       </form>
 
       <pre>
