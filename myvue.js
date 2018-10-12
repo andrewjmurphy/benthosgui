@@ -1101,10 +1101,13 @@ var createSection = new Vue({
             break;
           case 'object':
             subobjects = []
-            entry.initial = '_parent'
             if (Array.isArray(subsection)) {
               entry.type = 'array'
-              entry.initial = [""]
+              entry.elements = []
+              for (key in subsection) {
+                entry.elements[key] = {"index": key, "initial": subsection[key]}
+              }
+              //entry.elements = [{"index": 0, "initial": subsection[0]}]
               formfields.push(entry)
             } else {
               entry.type = 'object'
@@ -1121,7 +1124,6 @@ var createSection = new Vue({
         }
 
       }
-      console.log(formfields)
       return formfields
     },
     generateConfig: function (outputData) {
@@ -1178,7 +1180,17 @@ var inputform = new Vue({
       this.fields = createSection.generateFormSection([], template.input[this.selectedinput], 0, this.selectedinput + ".")
       this.output['input.type'] = this.selectedinput
       for (field in this.fields) {
-        this.output[this.fields[field]['uniqid']] = this.fields[field]['initial']
+        if (this.fields[field].type == 'array') {
+          inputArray = this.fields[field].elements
+          outputArray = []
+          for (key in inputArray) {
+            entry = inputArray[key]
+            outputArray[entry.index] = entry.initial
+          }
+          this.output[this.fields[field]['uniqid']] = outputArray
+        } else {
+          this.output[this.fields[field]['uniqid']] = this.fields[field]['initial']
+        }
       }
     }
   },
@@ -1188,7 +1200,9 @@ var inputform = new Vue({
       this.configOutput = JSON.stringify(generatedConfig, null, 2)
     },
     addArrayEntry: function (parent) {
-      this.output[parent].push("")
+      newElement = {"index": parent.elements.length, "value": ""}
+      parent.elements.push(newElement)
+      this.output
       this.generateConfig()
     }
   }

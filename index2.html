@@ -47,10 +47,10 @@
                 </div>
                 <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'array'">
                     {{ field.name }}:
-                    <button @click.prevent="addArrayEntry(field.uniqid)">Add</button>
-                    <div v-for="arrayEntry in output[field.uniqid]"
+                    <button @click.prevent="addArrayEntry(field)">Add</button>
+                    <div v-for="arrayEntry in field.elements"
                          v-bind:style='"text-indent: " + (field.margin + 2) + "em;"'>
-                        <input type="text" v-bind:name="field.uniqid">
+                        <input type="text" v-bind:name="field.uniqid + '.' + arrayEntry.index" v-model="output[field.uniqid][arrayEntry.index]">
                     </div>
                 </div>
                 <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
@@ -65,7 +65,7 @@
 
   <pre>
     <code>
-        {{ configOutput }}
+{{ configOutput }}
     </code>
   </pre>
     </div>
