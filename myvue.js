@@ -1104,34 +1104,11 @@ var createSection = new Vue({
             entry.initial = '_parent'
             if (Array.isArray(subsection)) {
               entry.type = 'array'
+              entry.initial = [""]
               formfields.push(entry)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              child = {"0": ""}
-              formfields = createSection.generateFormSection(formfields, child, margin + 2, fieldname + ".")
             } else {
               entry.type = 'object'
+              entry.initial = '_parent'
               formfields.push(entry)
               formfields = createSection.generateFormSection(formfields, subsection, margin + 2, fieldname + ".")
             }
@@ -1155,14 +1132,10 @@ var createSection = new Vue({
       return result
     },
     addPathToOutput: function(result, path, data) {
-      console.log(result)
-      //debugger
       if (path.includes(".")) {
-        console.log("not a leaf")
         seperator = path.indexOf('.')
         parent = path.substring(0,seperator)
         child = path.substring(seperator+1)
-        console.log("parent: " + parent + " child: " + child)
         parentobj = {}
         if (parent in result) {
           parentobj = result[parent]
@@ -1172,9 +1145,7 @@ var createSection = new Vue({
       } else {
         if (data != '_parent') {
           result[path] = data
-          console.log("adding " + path + ": " + data + " to " + result)
         }
-        console.log(result)
         return result
       }
     }
@@ -1188,6 +1159,7 @@ var inputform = new Vue({
     count: 1,
     selectedinput: "",
     output: {},
+    configOutput: "",
     inputs: [
     ],
     fields: [
@@ -1202,7 +1174,9 @@ var inputform = new Vue({
   },
   watch: {
     selectedinput: function(){
-      this.fields = createSection.generateFormSection([], template.input[this.selectedinput], 0, "")
+      this.output = {}
+      this.fields = createSection.generateFormSection([], template.input[this.selectedinput], 0, this.selectedinput + ".")
+      this.output['input.type'] = this.selectedinput
       for (field in this.fields) {
         this.output[this.fields[field]['uniqid']] = this.fields[field]['initial']
       }
@@ -1210,10 +1184,12 @@ var inputform = new Vue({
   },
   methods: {
     generateConfig: function () {
-      console.log(createSection.generateConfig(this.output))
+      generatedConfig = createSection.generateConfig(this.output)
+      this.configOutput = JSON.stringify(generatedConfig, null, 2)
     },
-    addArrayEntry: function () {
-      this.inputs.push()
+    addArrayEntry: function (parent) {
+      this.output[parent].push("")
+      this.generateConfig()
     }
   }
 })
