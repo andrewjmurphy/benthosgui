@@ -1049,35 +1049,6 @@ var template = {
   "sys_exit_timeout_ms": 20000
 }
 
-var ttemplate = {
-  "input": {
-    "type": "stdin",
-    "amqp": {
-      "queue": "benthos-queue",
-      "queue_declare": {
-        "enabled": false,
-        "durable": true
-      }
-    }
-  }
-}
-
-var app4 = new Vue({
-  el: '#app-4',
-  data: {
-    message: 'new data',
-    number: '2'
-  },
-  methods: {
-    addToList: function () {
-      var i;
-      for (i = 0; i < this.number; i++) {
-        app5.todos.push({ text: this.message })
-      }
-    }
-  }
-})
-
 var createSection = new Vue({
   data: {
     result: ""
@@ -1205,16 +1176,6 @@ var inputform = new Vue({
       this.output
       this.generateConfig()
     }
-  }
-})
-
-var app5 = new Vue({
-  el: '#app-5',
-  data: {
-    todos: [
-    ]
-  },
-  methods: {
   }
 })
 
