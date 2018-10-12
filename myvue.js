@@ -1155,10 +1155,9 @@ Vue.component('form-vue', {
           this.inputs.push({ text: inputname })
         }
       }
-      //this.template = this.templateHeader + this.templateSelectbox + this.template
     } else {
-      //this.template = this.templateHeader + this.templateSelectbox + this.template
       this.fields = createSection.generateFormSection([], template[this.name], 0, this.name + ".")
+      this.createOutputObject()
     }
   },
   watch: {
@@ -1188,6 +1187,7 @@ Vue.component('form-vue', {
     generateConfig: function () {
       generatedConfig = createSection.generateConfig(this.output)
       this.configOutput = JSON.stringify(generatedConfig, null, 2)
+      this.$emit("updateoutput", {"name": this.name, "output": this.output})
     },
     addArrayEntry: function (parent) {
       newElement = {"index": parent.elements.length, "value": ""}
@@ -1244,7 +1244,31 @@ Vue.component('form-vue', {
 })
 
 
-new Vue({ el: '#vueforms' })
+var vueForms = new Vue({
+  el: '#vueforms',
+  data: {
+    allOutputs: {}
+  },
+  methods: {
+    updateOutput: function (outputObject) {
+      this.allOutputs[outputObject.name] = outputObject.output
+    },
+    mergeObjects: function (obj, src) {
+      for (var key in src) {
+        if (src.hasOwnProperty(key)) obj[key] = src[key];
+      }
+      return obj;
+    },
+    getAllOutput: function () {
+      finalOutput = {}
+      for (key in this.allOutputs) {
+        finalOutput = this.mergeObjects(finalOutput, this.allOutputs[key])
+      }
+      return createSection.generateConfig(finalOutput)
+    }
+  }
+})
+
 
 var acc = document.getElementsByClassName("accordion");
 var i;
