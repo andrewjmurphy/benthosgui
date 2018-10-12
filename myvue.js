@@ -1057,7 +1057,7 @@ var createSection = new Vue({
     generateFormSection: function(formfields, templateSection, margin, parent) {
       for (fieldname in templateSection) {
         subsection = templateSection[fieldname]
-        uniqid = "input." + parent + fieldname
+        uniqid = parent + fieldname
         entry = {'name': fieldname, 'margin': margin, 'parent': parent, 'uniqid': uniqid}
         switch (typeof subsection) {
           case 'boolean':
@@ -1084,7 +1084,7 @@ var createSection = new Vue({
               entry.type = 'object'
               entry.initial = '_parent'
               formfields.push(entry)
-              formfields = createSection.generateFormSection(formfields, subsection, margin + 2, fieldname + ".")
+              formfields = createSection.generateFormSection(formfields, subsection, margin + 2, uniqid + ".")
             }
             break;
           default:
@@ -1125,31 +1125,52 @@ var createSection = new Vue({
   }
 })
 
-
-var inputform = new Vue({
-  el: '#inputform',
-  data: {
-    count: 1,
-    selectedinput: "",
-    output: {},
-    configOutput: "",
-    inputs: [
-    ],
-    fields: [
-    ]
+Vue.component('form-vue', {
+  props: {
+    name: {
+      default: "input",
+      type: String
+    },
+    nested: {
+      default: true,
+      type: Boolean
+    }
+  },
+  data: function () {
+    return {
+      count: 1,
+      selectedinput: "",
+      output: {},
+      configOutput: "",
+      inputs: [
+      ],
+      fields: [
+      ]
+    }
   },
   created: function() {
-    for (inputname in template.input) {
-      if (inputname != "type") {
-        this.inputs.push({ text: inputname })
+    if (this.nested) {
+      for (inputname in template[this.name]) {
+        if (inputname != "type") {
+          this.inputs.push({ text: inputname })
+        }
       }
+      //this.template = this.templateHeader + this.templateSelectbox + this.template
+    } else {
+      //this.template = this.templateHeader + this.templateSelectbox + this.template
+      this.fields = createSection.generateFormSection([], template[this.name], 0, this.name + ".")
     }
   },
   watch: {
     selectedinput: function(){
       this.output = {}
-      this.fields = createSection.generateFormSection([], template.input[this.selectedinput], 0, this.selectedinput + ".")
-      this.output['input.type'] = this.selectedinput
+      this.fields = createSection.generateFormSection([], template[this.name][this.selectedinput], 0, this.name + "." + this.selectedinput + ".")
+      this.output[this.name + '.type'] = this.selectedinput
+      this.createOutputObject()
+    }
+  },
+  methods: {
+    createOutputObject: function () {
       for (field in this.fields) {
         if (this.fields[field].type == 'array') {
           inputArray = this.fields[field].elements
@@ -1163,9 +1184,7 @@ var inputform = new Vue({
           this.output[this.fields[field]['uniqid']] = this.fields[field]['initial']
         }
       }
-    }
-  },
-  methods: {
+    },
     generateConfig: function () {
       generatedConfig = createSection.generateConfig(this.output)
       this.configOutput = JSON.stringify(generatedConfig, null, 2)
@@ -1176,8 +1195,56 @@ var inputform = new Vue({
       this.output
       this.generateConfig()
     }
-  }
+  },
+  template: `
+<div id=formvue>
+  <button class="accordion">{{ name.toUpperCase() }}<i class="more-less glyphicon glyphicon-plus"></i></button>
+  <div id="thisform" class="panel">
+      <select v-model="selectedinput" v-show="nested">
+          <option disabled value="">Select input type</option>
+          <option v-for="inputtype in inputs">
+              {{ inputtype.text }}
+          </option>
+      </select>
+
+      <form id=input>
+          <div v-for="field in fields">
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-if="field.type == 'boolean'">
+                  {{ field.name }}: <input type="checkbox" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'number'">
+                  {{ field.name }}: <input type="number" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'array'">
+                  {{ field.name }}:
+                  <button @click.prevent="addArrayEntry(field)">Add</button>
+                  <div v-for="arrayEntry in field.elements"
+                       v-bind:style='"text-indent: " + (field.margin + 2) + "em;"'>
+                      <input type="text" v-bind:name="field.uniqid + '.' + arrayEntry.index" v-model="output[field.uniqid][arrayEntry.index]">
+                  </div>
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
+                  {{ field.name }}:
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else>
+                  {{ field.name }}: <input type="text" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
+              </div>
+          </div>
+          <button @click.prevent="generateConfig">Generate</button>
+      </form>
+
+      <pre>
+        <code>
+{{ configOutput }}
+        </code>
+      </pre>
+  </div>
+</div>
+`
 })
+
+
+new Vue({ el: '#vueforms' })
 
 var acc = document.getElementsByClassName("accordion");
 var i;
