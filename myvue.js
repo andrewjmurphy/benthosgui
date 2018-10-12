@@ -1270,8 +1270,12 @@ Vue.component('form-vue', {
       this.processorOutputObject[this.name].processors.push((generatedConfig = createSection.generateConfig(this.processoroutput).pipeline.processors))
       generatedProcessorConfig = createSection.generateConfig(this.processorOutputObject)
       generatedMasterConfig = createSection.generateConfig(this.output)
+      console.log(generatedMasterConfig[this.name])
+      console.log(generatedProcessorConfig[this.name])
+      generatedMasterConfig[this.name]['processors'] = generatedProcessorConfig[this.name]['processors']
+      console.log(generatedMasterConfig[this.name])
       generatedConfig = createSection.generateConfig(this.processorOutputObject)
-      this.configOutput = JSON.stringify(generatedProcessorConfig, null, 2)
+      this.configOutput = JSON.stringify(generatedMasterConfig, null, 2)
       this.$emit("updateoutput", {"name": this.name, "output": this.processorOutputObject})
     },
     mergeObjects: function (obj, src) {
