@@ -4,6 +4,11 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 
+<div class="header">
+    <h1>Benthos config generator<img src="icon.png" alt="logo"/></h1>
+
+</div>
+
 
 <button class="accordion">INPUTS<i class="more-less glyphicon glyphicon-plus"></i></button>
 <div class="panel">
@@ -32,7 +37,8 @@
                     <button @click.prevent="addArrayEntry(field)">Add</button>
                     <div v-for="arrayEntry in field.elements"
                          v-bind:style='"text-indent: " + (field.margin + 2) + "em;"'>
-                        <input type="text" v-bind:name="field.uniqid + '.' + arrayEntry.index" v-model="output[field.uniqid][arrayEntry.index]">
+                        <input type="text" v-bind:name="field.uniqid + '.' + arrayEntry.index"
+                               v-model="output[field.uniqid][arrayEntry.index]">
                     </div>
                 </div>
                 <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
@@ -47,7 +53,7 @@
 
   <pre>
     <code>
-{{ configOutput }}
+        {{ configOutput }}
     </code>
   </pre>
     </div>
