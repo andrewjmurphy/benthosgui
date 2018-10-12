@@ -57,7 +57,7 @@
 
 <!-- app -->
 <div id="generate-config">
-    <button id="show-modal" @click="showConfig">Generate config</button>
+    <button id="show-modal" class="gen-button" @click="showConfig">Generate config</button>
     <!-- use the modal component, pass in the prop -->
     <modal v-if="showModal" @close="showModal = false">
         <!--
@@ -65,7 +65,7 @@
           default content
         -->
         <h3 slot="header">Benthos config</h3>
-        <h3 slot="body">{{ config }}</h3>
+        <h5 slot="body">{{ config }}</h5>
     </modal>
 </div>
 

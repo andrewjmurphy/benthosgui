@@ -70,7 +70,7 @@ html {
 }
 
 .modal-container {
-    width: 300px;
+    width: 600px;
     margin: 0px auto;
     padding: 20px 30px;
     background-color: #fff;
@@ -114,4 +114,13 @@ html {
 .modal-leave-active .modal-container {
     -webkit-transform: scale(1.1);
     transform: scale(1.1);
+}
+
+.gen-button {
+    margin-top: 20px;
+    margin-left: 30%;
+    width: 200px;
+    height: 40px;
+    font-size: medium;
+    background: #D9B9B9;
 }
