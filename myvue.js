@@ -1073,12 +1073,15 @@ var createSection = new Vue({
           case 'object':
             subobjects = []
             if (Array.isArray(subsection)) {
+              if (fieldname == 'inputs') {
+                // this is a special case, treat it as such
+                console.log("inputs array detected")
+              }
               entry.type = 'array'
               entry.elements = []
               for (key in subsection) {
                 entry.elements[key] = {"index": key, "initial": subsection[key]}
               }
-              //entry.elements = [{"index": 0, "initial": subsection[0]}]
               formfields.push(entry)
             } else {
               entry.type = 'object'
