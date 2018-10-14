@@ -17,6 +17,12 @@ html {
     height: 25%
 }
 
+.intro {
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid gray;
+}
+
 /* Style the buttons that are used to open and close the accordion panel */
 .accordion {
     background-color: #22D0D0;
