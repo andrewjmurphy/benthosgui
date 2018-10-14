@@ -1267,7 +1267,7 @@ Vue.component('form-vue', {
     },
     addProcessor: function () {
       console.log(this.processorOutputObject)
-      this.processorOutputObject[this.name].processors.push((generatedConfig = createSection.generateConfig(this.processoroutput).pipeline.processors))
+      this.processorOutputObject[this.name].processors.push((generatedConfig = createSection.generateConfig(this.processoroutput)[this.name].processors))
       generatedProcessorConfig = createSection.generateConfig(this.processorOutputObject)
       generatedMasterConfig = createSection.generateConfig(this.output)
       console.log(generatedMasterConfig[this.name])
@@ -1319,7 +1319,7 @@ Vue.component('form-vue', {
                   {{ field.name }}: <input type="text" v-bind:name="field.uniqid" v-model="output[field.uniqid]">
               </div>
           </div>
-          <button @click.prevent="generateConfig" class="add-button">Generate</button>
+          <button @click.prevent="generateConfig" class="add-button">Add</button>
           <button @click.prevent="addToBroker" v-show="showbroker" class="add-button">Add to broker</button>
       </form>
 
