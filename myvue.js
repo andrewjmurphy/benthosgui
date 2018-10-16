@@ -1142,6 +1142,10 @@ Vue.component('form-vue', {
     showprocessors: {
       default: false,
       type: Boolean
+    },
+    showconditions: {
+      default: false,
+      type: Boolean
     }
   },
   data: function () {
@@ -1166,6 +1170,16 @@ Vue.component('form-vue', {
 
       ],
       processorfields: [
+
+      ],
+
+      selectedcondition: "",
+      conditionoutput: {},
+      conditionOutputObject: {},
+      conditioninputs: [
+
+      ],
+      conditionfields: [
 
       ]
 
@@ -1203,6 +1217,14 @@ Vue.component('form-vue', {
       }
       this.processorOutputObject[this.formname] = {"processors": []}
     }
+    if (this.showconditions) {
+      for (conditionname in template.resources.caches.example) {
+        if (conditionname != "type") {
+          this.conditioninputs.push({ text: conditionname })
+        }
+      }
+      this.conditionOutputObject[this.formname] = {"conditions": []}
+    }
   },
   watch: {
     selectedinput: function(){
@@ -1215,6 +1237,11 @@ Vue.component('form-vue', {
       this.processoroutput = {}
       this.processorfields = createSection.generateFormSection([], template.pipeline.processors[0][this.selectedprocessor], 0, this.name + ".processors." + this.selectedprocessor + ".")
       this.createProcessorOutputObject()
+    },
+    selectedcondition: function(){
+      this.conditionoutput = {}
+      this.conditionfields = createSection.generateFormSection([], template.resources.caches.example[this.selectedcondition], 0, this.name + ".conditions." + this.selectedcondition + ".")
+      this.createConditionOutputObject()
     }
   },
   methods: {
@@ -1245,6 +1272,21 @@ Vue.component('form-vue', {
           this.processoroutput[this.processorfields[field]['uniqid']] = outputArray
         } else {
           this.processoroutput[this.processorfields[field]['uniqid']] = this.processorfields[field]['initial']
+        }
+      }
+    },
+    createConditionOutputObject: function () {
+      for (field in this.conditionfields) {
+        if (this.conditionfields[field].type == 'array') {
+          inputArray = this.conditionfields[field].elements
+          outputArray = []
+          for (key in inputArray) {
+            entry = inputArray[key]
+            outputArray[entry.index] = entry.initial
+          }
+          this.conditionoutput[this.conditionfields[field]['uniqid']] = outputArray
+        } else {
+          this.conditionoutput[this.conditionfields[field]['uniqid']] = this.conditionfields[field]['initial']
         }
       }
     },
@@ -1290,7 +1332,7 @@ Vue.component('form-vue', {
   <button class="accordion">{{ name.toUpperCase() }}<i class="more-less glyphicon glyphicon-plus"></i></button>
   <div id="thisform" class="panel">
       <select v-model="selectedinput" v-show="nested" class="dropdown">
-          <option disabled value="">Select input type</option>
+          <option disabled value="">Select {{ this.name }} type</option>
           <option v-for="inputtype in inputs">
               {{ inputtype.text }}
           </option>
@@ -1354,6 +1396,39 @@ Vue.component('form-vue', {
               </div>
           </div>
           <button @click.prevent="addProcessor">Add processor</button>
+      </form>
+
+      <select v-model="selectedcondition" v-show="showconditions">
+          <option disabled value="">Select condition type</option>
+          <option v-for="conditiontype in conditioninputs">
+              {{ conditiontype.text }}
+          </option>
+      </select>
+
+      <form id=conditionform  v-show="showconditions">
+          <div id=mainform v-for="field in conditionfields">
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-if="field.type == 'boolean'">
+                  {{ field.name }}: <input type="checkbox" v-bind:name="field.uniqid" v-model="conditionoutput[field.uniqid]">
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'number'">
+                  {{ field.name }}: <input type="number" v-bind:name="field.uniqid" v-model="conditionoutput[field.uniqid]">
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'array'">
+                  {{ field.name }}:
+                  <button @click.prevent="addArrayEntry(field)">Add</button>
+                  <div v-for="arrayEntry in field.elements"
+                       v-bind:style='"text-indent: " + (field.margin + 2) + "em;"'>
+                      <input type="text" v-bind:name="field.uniqid + '.' + arrayEntry.index" v-model="conditionoutput[field.uniqid][arrayEntry.index]">
+                  </div>
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else-if="field.type == 'object'">
+                  {{ field.name }}:
+              </div>
+              <div v-bind:style='"text-indent: " + field.margin + "em;"' v-else>
+                  {{ field.name }}: <input type="text" v-bind:name="field.uniqid" v-model="conditionoutput[field.uniqid]">
+              </div>
+          </div>
+          <button @click.prevent="addCondition">Add condition</button>
       </form>
 
       <pre>
